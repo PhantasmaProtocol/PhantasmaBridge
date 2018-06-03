@@ -13,12 +13,14 @@ namespace Phantasma.Bridge.Core
     public class Mailbox
     {
         public readonly string name;
-        public readonly UInt160 address;
+        public readonly UInt160 hash;
+        public readonly string address;
 
-        public Mailbox(string name, UInt160 address)
+        public Mailbox(string name, UInt160 hash)
         {
             this.name = name;
-            this.address = address;
+            this.hash = hash;
+            this.address = hash.ToAddress();
         }
 
         public static bool ValidateMailboxName(byte[] mailbox_name)
@@ -56,6 +58,8 @@ namespace Phantasma.Bridge.Core
 
         private Dictionary<UInt160, Mailbox> addressMap = new Dictionary<UInt160, Mailbox>();
         private Dictionary<string, Mailbox> nameMap = new Dictionary<string, Mailbox>();
+
+        public IEnumerable<Mailbox> Mailboxes => addressMap.Values;
 
         public BridgeManager(NeoAPI api, Transaction deployTx, uint lastBlock)
         {
@@ -216,6 +220,9 @@ namespace Phantasma.Bridge.Core
                                     }
                                     else
                                     {
+                                        var mailbox = new Mailbox(name, address);
+                                        nameMap[name] = mailbox;
+                                        addressMap[address] = mailbox;
                                         result = "OK";
                                     }
 

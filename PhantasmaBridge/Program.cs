@@ -1,4 +1,5 @@
-﻿using Neo.Lux.Core;
+﻿using LunarParser;
+using Neo.Lux.Core;
 using Phantasma.Bridge.Core;
 using SynkServer.Core;
 using SynkServer.HTTP;
@@ -12,10 +13,9 @@ namespace Phantasma.Bridge
         static void Main(string[] args)
         {
             // initialize a logger
-            var log = new SynkServer.Core.Logger();
+            var log = new Logger();
 
-            // either parse the settings from the program args or initialize them manually
-            var settings = ServerSettings.Parse(args);
+            var settings = new ServerSettings() { environment = ServerEnvironment.Prod, host = "phantasma.io", path = ".", port = 7733 };
 
             var server = new HTTPServer(log, settings);
 
@@ -38,7 +38,20 @@ namespace Phantasma.Bridge
 
             site.Get("/", (request) =>
             {
-                return HTTPResponse.FromString("Hello world!");
+                return HTTPResponse.FromString("Phantasma Bridge API");
+            });
+
+            site.Get("/api/mailboxes", (request) =>
+            {
+                var root = DataNode.CreateArray("mailboxes");
+                foreach (var mailbox in bridge.Mailboxes)
+                {
+                    var node = DataNode.CreateObject("box");
+                    node.AddField("address", mailbox.address);
+                    node.AddField("name", mailbox.name);
+                    root.AddNode(node);
+                }
+                return root;
             });
 
             Console.CancelKeyPress += delegate {
