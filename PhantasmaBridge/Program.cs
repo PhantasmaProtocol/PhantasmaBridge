@@ -27,7 +27,7 @@ namespace Phantasma.Bridge
 
             Console.WriteLine("Initializing Phantasma bridge...");
             var tx = api.GetTransaction("d56d553f38234d73d04deacd9fd5f110d572898e8bd9c62333bbf7c31e1d1658");
-            var bridge = new BridgeManager(api, tx, 2313808);
+            var bridge = new BridgeManager(api, tx, 2313808, log);
 
             var bridgeThread = new Thread(() => {
                 Console.WriteLine("Running Phantasma bridge...");

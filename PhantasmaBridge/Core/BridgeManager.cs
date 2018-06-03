@@ -3,6 +3,7 @@ using Neo.Lux.Cryptography;
 using Neo.Lux.Debugger;
 using Neo.Lux.Utils;
 using Neo.Lux.VM;
+using SynkServer.Core;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -52,7 +53,7 @@ namespace Phantasma.Bridge.Core
         private UInt160 contract_hash;
         private bool running;
 
-        private SnapshotVM listenerVM;
+        private Logger logger;
 
         private Dictionary<UInt256, Transaction> transactions = new Dictionary<UInt256, Transaction>();
 
@@ -61,10 +62,11 @@ namespace Phantasma.Bridge.Core
 
         public IEnumerable<Mailbox> Mailboxes => addressMap.Values;
 
-        public BridgeManager(NeoAPI api, Transaction deployTx, uint lastBlock)
+        public BridgeManager(NeoAPI api, Transaction deployTx, uint lastBlock, Logger logger)
         {
             this.neo_api = api;
             this.lastBlock = lastBlock;
+            this.logger = logger;
 
             if (deployTx != null)
             {
@@ -93,8 +95,6 @@ namespace Phantasma.Bridge.Core
             {
                 throw new Exception($"Invalid deploy transaction");
             }
-
-            this.listenerVM = new SnapshotVM(this);
         }
 
         public void Stop()
@@ -136,7 +136,7 @@ namespace Phantasma.Bridge.Core
 
         private void ProcessIncomingBlock(uint height)
         {
-            Console.WriteLine("Processing block #" + height);
+            logger.Info("Processing block #" + height);
 
             var block = neo_api.GetBlock(height);
 
@@ -226,7 +226,7 @@ namespace Phantasma.Bridge.Core
                                         result = "OK";
                                     }
 
-                                    Console.WriteLine($"{method} ({address.ToAddress()}, {name}) => {result}");
+                                    logger.Info($"{method} ({address.ToAddress()}, {name}) => {result}");
 
                                     break;
                                 }
