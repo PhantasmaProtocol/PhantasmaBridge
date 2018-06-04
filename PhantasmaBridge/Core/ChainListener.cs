@@ -151,7 +151,7 @@ namespace Phantasma.Bridge.Core
                         var method = Encoding.ASCII.GetString(prev.data);
 
                         int index = i - 3;
-                        var argCount = (byte)code[index].opcode - (byte)OpCode.PUSH0;
+                        var argCount = 1 + ((byte)code[index].opcode - (byte)OpCode.PUSH1);
                         var args = new List<byte[]>();
 
                         while (argCount > 0)
