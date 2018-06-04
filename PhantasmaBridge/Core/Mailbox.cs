@@ -1,4 +1,5 @@
 ﻿using Neo.Lux.Cryptography;
+using Neo.Lux.Utils;
 
 namespace Phantasma.Bridge.Core
 {
