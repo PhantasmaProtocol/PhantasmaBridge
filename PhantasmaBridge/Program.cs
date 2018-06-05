@@ -23,6 +23,12 @@ namespace Phantasma.Bridge
 
             var server = new HTTPServer(log, settings);
 
+            /*var ips = DNSUtils.LookUp("gmail.com", DNSUtils.DNSKind.MX);
+            foreach (var ip in ips)
+            {
+                Console.WriteLine(ip);
+            }*/
+
             // instantiate a new site, the second argument is the file path where the public site contents will be found
             var site = new Site(server, "public");
 
