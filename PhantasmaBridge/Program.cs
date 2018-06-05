@@ -4,6 +4,7 @@ using Phantasma.Bridge.Core;
 using SynkServer.Core;
 using SynkServer.HTTP;
 using System;
+using System.Collections.Generic;
 using System.Threading;
 
 namespace Phantasma.Bridge
@@ -12,6 +13,9 @@ namespace Phantasma.Bridge
     {
         static void Main(string[] args)
         {
+            var api = new LocalRPCNode(10332, "http://neoscan.io");
+            //var api = new RemoteRPCNode(10332, "http://neoscan.io");
+
             // initialize a logger
             var log = new Logger();
 
@@ -22,12 +26,9 @@ namespace Phantasma.Bridge
             // instantiate a new site, the second argument is the file path where the public site contents will be found
             var site = new Site(server, "public");
 
-            var api = new LocalRPCNode(10332, "http://neoscan.io");
-            //var api = new RemoteRPCNode(10332, "http://neoscan.io");
-
             Console.WriteLine("Initializing Phantasma bridge...");
             var tx = api.GetTransaction("d56d553f38234d73d04deacd9fd5f110d572898e8bd9c62333bbf7c31e1d1658");
-            var bridge = new ChainListener(api, tx, 2313808, log);
+            var bridge = new ChainListener(api, tx, /*2313808*/2350860, log);
 
             var bridgeThread = new Thread(() => {
                 Console.WriteLine("Running Phantasma bridge...");
