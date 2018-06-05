@@ -43,7 +43,7 @@ namespace Phantasma.Bridge.Core
             UdpClient udpc = new UdpClient(dnsServer, 53);
 
             // send request to dns server
-            List<byte> list = new List<byte>();
+            var list = new List<byte>();
             list.AddRange(new byte[] { 88, 89, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0 });
 
             string[] tmp = domain.Split('.');
@@ -54,10 +54,13 @@ namespace Phantasma.Bridge.Core
                 foreach (char c in chars)
                     list.Add(Convert.ToByte(Convert.ToInt32(c)));
             }
+
             list.AddRange(new byte[] { 0, 0, Convert.ToByte(qtype), 0, 1 });
 
             byte[] req = new byte[list.Count];
-            for (int i = 0; i < list.Count; i++) { req[i] = list[i]; }
+            for (int i = 0; i < list.Count; i++) {
+                req[i] = list[i];
+            }
 
             udpc.Send(req, req.Length);
 
@@ -70,35 +73,58 @@ namespace Phantasma.Bridge.Core
 
             resp = new int[recv.Length];
             for (int i = 0; i < resp.Length; i++)
+            {
                 resp[i] = Convert.ToInt32(recv[i]);
+            }
 
             int status = resp[3];
-            if (status != 128) throw new Exception(string.Format("{0}", status));
+            if (status != 128)
+            {
+                throw new Exception($"dns failure, error code: {status}");
+            }
+
             int answers = resp[7];
-            if (answers == 0) throw new Exception("No results");
+            if (answers == 0)
+            {
+                throw new Exception("dsn failure, no results");
+            }
 
             int pos = domain.Length + 18;
-            if (qtype == "15") // MX record
-            {
-                while (answers > 0)
-                {
-                    int preference = resp[pos + 13];
-                    pos += 14; //offset
-                    string host = GetMXRecord(resp, pos, out pos);
 
-                    entries.Add(new DNSEntry(preference, host));
-                    answers--;
-                }
-            }
-            else if (qtype == "1") // A record
+            switch (qtype)
             {
-                while (answers > 0)
-                {
-                    pos += 11; // offset
-                    string str = GetARecord(resp, ref pos);
-                    entries.Add(new DNSEntry(0, str));
-                    answers--;
-                }
+                // MX record
+                case "15":
+                    {
+                        while (answers > 0)
+                        {
+                            int preference = resp[pos + 13];
+                            pos += 14; //offset
+                            string host = GetMXRecord(resp, pos, out pos);
+
+                            entries.Add(new DNSEntry(preference, host));
+                            answers--;
+                        }
+                        break;
+                    }
+
+                // A record
+                case "1":
+                    {
+                        while (answers > 0)
+                        {
+                            pos += 11; // offset
+                            string str = GetARecord(resp, ref pos);
+                            entries.Add(new DNSEntry(0, str));
+                            answers--;
+                        }
+                        break;
+                    }
+
+                default:
+                    {
+                        throw new Exception($"dsn failure, unsupported dns type {qtype}");
+                    }
             }
 
             return entries.OrderBy(x => x.preference).Select( x => x.host).ToList();
